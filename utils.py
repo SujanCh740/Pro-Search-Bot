@@ -1,7 +1,6 @@
 import logging
-import base64
 from pyrogram.errors import InputUserDeactivated, UserNotParticipant, FloodWait, UserIsBlocked, PeerIdInvalid
-from info import AUTH_CHANNEL, LONG_IMDB_DESCRIPTION, MAX_LIST_ELM, SHORTLINK_URL, SHORTLINK_API, IS_SHORTLINK, LOG_CHANNEL, TUTORIAL, GRP_LNK, CHNL_LNK, CUSTOM_FILE_CAPTION, STREAM_URL, STREAM_BIN, IS_STREAM, WEB_APP_URL
+from info import AUTH_CHANNEL, LONG_IMDB_DESCRIPTION, MAX_LIST_ELM, SHORTLINK_URL, SHORTLINK_API, IS_SHORTLINK, LOG_CHANNEL, TUTORIAL, GRP_LNK, CHNL_LNK, CUSTOM_FILE_CAPTION, STREAM_URL, STREAM_BIN, IS_STREAM, APP_URL, IS_WEBAPP
 from imdb import Cinemagoer 
 import asyncio
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
@@ -15,6 +14,7 @@ import re
 import os
 from datetime import datetime, date
 import string
+import base64
 from typing import List
 from database.users_chats_db import db
 from bs4 import BeautifulSoup
@@ -23,15 +23,6 @@ import aiohttp
 from shortzy import Shortzy
 import http.client
 import json
-from datetime import datetime
-import pytz
-
-def get_greeting():
-    curr = datetime.now(pytz.timezone('Asia/Kolkata')).hour
-    if 5 <= curr < 12: return "Gᴏᴏᴅ Mᴏʀɴɪɴɢ"
-    elif 12 <= curr < 17: return "Gᴏᴏᴅ Aꜰᴛᴇʀɴᴏᴏɴ"
-    elif 17 <= curr < 21: return "Gᴏᴏᴅ Eᴠᴇɴɪɴɢ"
-    else: return "Gᴏᴏᴅ Nɪɢʜᴛ"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -650,26 +641,49 @@ async def send_all(bot, userid, files, ident, chat_id, user_name, query):
         await save_group_settings(message.chat.id, 'is_shortlink', False)
         ENABLE_SHORTLINK = False
     try:
-        greeting = get_greeting()
-        for file in files:
-            title = file.file_name
-            size = get_size(file.file_size)
-            f_caption = f"<b>🫂 Hᴇʏ {user_name}, {greeting} 👋\n\n✅ Your File Is Ready.\n\n⚠️ Fɪʟᴇ Nᴀᴍᴇ : <font color='#00FFFF'>{title}</font>\n\n📥 Fɪʟᴇ Sɪᴢᴇ : <font color='#00FFFF'>{size}</font></b>"
-            
-            buttons = []
-            if WEB_APP_URL:
-                buttons.append([InlineKeyboardButton("📁 Get File 📁", url=await get_web_app_link(file.file_id, userid))])
-            buttons.append([InlineKeyboardButton("⚡ How To Get File ⚡", url=await get_tutorial(chat_id))])
-            
-            if ENABLE_SHORTLINK:
-                # If shortlink is enabled, we could still show the web app if configured
-                pass 
-
-            await bot.send_message(
-                chat_id=userid,
-                text=f_caption,
-                reply_markup=InlineKeyboardMarkup(buttons)
-            )
+        if ENABLE_SHORTLINK:
+            for file in files:
+                title = file.file_name
+                size = get_size(file.file_size)
+                await bot.send_message(chat_id=userid, text=f"<b>Hᴇʏ ᴛʜᴇʀᴇ {user_name} 👋🏽 \n\n✅ Sᴇᴄᴜʀᴇ ʟɪɴᴋ ᴛᴏ ʏᴏᴜʀ ғɪʟᴇ ʜᴀs sᴜᴄᴄᴇssғᴜʟʟʏ ʙᴇᴇɴ ɢᴇɴᴇʀᴀᴛᴇᴅ ᴘʟᴇᴀsᴇ ᴄʟɪᴄᴋ ᴅᴏᴡɴʟᴏᴀᴅ ʙᴜᴛᴛᴏɴ\n\n🗃️ Fɪʟᴇ Nᴀᴍᴇ : {title}\n🔖 Fɪʟᴇ Sɪᴢᴇ : {size}</b>", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📤 Dᴏᴡɴʟᴏᴀᴅ 📥", url=await get_verify_link(await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}")))]]))
+        else:
+            for file in files:
+                    f_caption = file.caption
+                    title = file.file_name
+                    size = get_size(file.file_size)
+                    if CUSTOM_FILE_CAPTION:
+                        try:
+                            f_caption = CUSTOM_FILE_CAPTION.format(file_name='' if title is None else title,
+                                                                    file_size='' if size is None else size,
+                                                                    file_caption='' if f_caption is None else f_caption)
+                        except Exception as e:
+                            print(e)
+                            f_caption = f_caption
+                    if f_caption is None:
+                        f_caption = f"{title}"
+                    if IS_WEBAPP:
+                        await bot.send_message(
+                            chat_id=userid,
+                            text=f"<b>Hᴇʏ ᴛʜᴇʀᴇ {user_name} 👋🏽 \n\n✅ Sᴇᴄᴜʀᴇ ʟɪɴᴋ ᴛᴏ ʏᴏᴜʀ ғɪʟᴇ ʜᴀs sᴜᴄᴄᴇssғᴜʟʟʏ ʙᴇᴇɴ ɢᴇɴᴇʀᴀᴛᴇᴅ ᴘʟᴇᴀsᴇ ᴄʟɪᴄᴋ ᴅᴏᴡɴʟᴏᴀᴅ ʙᴜᴛᴛᴏɴ\n\n🗃️ Fɪʟᴇ Nᴀᴍᴇ : {title}\n🔖 Fɪʟᴇ Sɪᴢᴇ : {size}</b>",
+                            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📤 Dᴏᴡɴʟᴏᴀᴅ 📥", url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}"))]])
+                        )
+                    else:
+                        await bot.send_cached_media(
+                            chat_id=userid,
+                            file_id=file.file_id,
+                            caption=f_caption,
+                            protect_content=True if ident == "filep" else False,
+                            reply_markup=InlineKeyboardMarkup(
+                                [
+                                    [
+                                    InlineKeyboardButton('Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ', url=GRP_LNK),
+                                    InlineKeyboardButton('Uᴘᴅᴀᴛᴇs Cʜᴀɴɴᴇʟ', url=CHNL_LNK)
+                                ],[
+                                    InlineKeyboardButton("Bᴏᴛ Oᴡɴᴇʀ", url="t.me/Kgashok04")
+                                    ]
+                                ]
+                            )
+                        )
     except UserIsBlocked:
         await query.answer('Uɴʙʟᴏᴄᴋ ᴛʜᴇ ʙᴏᴛ ᴍᴀʜɴ !', show_alert=True)
     except PeerIdInvalid:
@@ -684,8 +698,8 @@ async def get_cap(settings, remaining_seconds, files, query, total_results, sear
             cap = IMDB_CAP
             cap+="<b>\n\n<u>📚 Requested Files 👇</u></b>\n\n"
             for file in files:
-                link = await get_web_app_link(file.file_id) or f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}"
-                cap += f"<b>📁 <a href='{link}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
+                url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}")
+                cap += f"<b>📁 <a href='{url}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
         else:
             imdb = await get_poster(search, file=(files[0]).file_name) if settings["imdb"] else None
             if imdb:
@@ -723,20 +737,20 @@ async def get_cap(settings, remaining_seconds, files, query, total_results, sear
                 )
                 cap+="<b>\n\n<u>📚 Requested Files 👇</u></b>\n\n"
                 for file in files:
-                    link = await get_web_app_link(file.file_id) or f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}"
-                    cap += f"<b>📁 <a href='{link}'>{get_size(file.file_size)} ▷ {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
+                    url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}")
+                    cap += f"<b>📁 <a href='{url}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
             else:
                 cap = f"<b>Hᴇʏ {query.from_user.mention}, Fᴏᴜɴᴅ {total_results} Rᴇsᴜʟᴛs ғᴏʀ Yᴏᴜʀ Qᴜᴇʀʏ {search}\n\n</b>"
                 cap+="<b><u>📚 Requested Files 👇</u></b>\n\n"
                 for file in files:
-                    link = await get_web_app_link(file.file_id) or f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}"
-                    cap += f"<b>📁 <a href='{link}'>{get_size(file.file_size)} ▷ {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
+                    url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}")
+                    cap += f"<b>📁 <a href='{url}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
     else:
         cap = f"<b>Hᴇʏ {query.from_user.mention}, Fᴏᴜɴᴅ {total_results} Rᴇsᴜʟᴛs ғᴏʀ Yᴏᴜʀ Qᴜᴇʀʏ {search}\n\n</b>"
         cap+="<b><u>📚 Requested Files 👇</u></b>\n\n"
         for file in files:
-            link = await get_web_app_link(file.file_id) or f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}"
-            cap += f"<b>📁 <a href='{link}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
+            url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}")
+            cap += f"<b>📁 <a href='{url}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
     return cap
 
 def get_media_from_message(message: "Message"):
@@ -762,12 +776,8 @@ def get_hash(media_msg: Message) -> str:
     media = get_media_from_message(media_msg)
     return getattr(media, "file_unique_id", "")[:6]
 
-async def get_web_app_link(file_id, user_id=None):
-    if not WEB_APP_URL:
-        return None
-    target_link = f"https://t.me/{temp.U_NAME}?start=file_{file_id}"
-    base64_url = base64.urlsafe_b64encode(target_link.encode()).decode().rstrip("=")
-    link = f"{WEB_APP_URL}?token={base64_url}"
-    if user_id:
-        link += f"&u={user_id}"
-    return link
+async def get_verify_link(link):
+    if not IS_WEBAPP:
+        return link
+    token = base64.urlsafe_b64encode(link.encode()).decode().strip("=")
+    return f"{APP_URL}verify?token={token}"

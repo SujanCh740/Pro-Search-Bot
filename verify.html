@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Verification - Please Wait</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; /* Light blueish-grey background from screenshots */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Start from top to accommodate banners */
+            padding: 20px 0;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        /* Banner Ad Styles */
+        .ad-banner {
+            width: 100%;
+            max-width: 728px; /* Standard leaderboard width */
+            min-height: 90px;
+            background: #e1e8ed;
+            margin: 10px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+        }
+
+        .ad-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px 30px;
+            background: white; /* White container from screenshots */
+            border-radius: 40px; /* Highly rounded corners */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05); /* Soft shadow */
+            max-width: 450px;
+            width: 90%;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        /* Loader/Countdown styles from screenshot 2 */
+        .loader-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 30px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .countdown-number {
+            font-size: 80px;
+            font-weight: 300;
+            color: #2c3e50;
+        }
+
+        .spinner-circles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px dashed #d1d9e6;
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .rocket-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .verify-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: #2563eb; /* Bright blue from screenshot */
+            color: white;
+            text-decoration: none;
+            border-radius: 50px; /* Pill shape */
+            font-weight: 600;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .verify-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .verify-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .footer-text {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .status-text {
+            font-size: 16px;
+            color: #10b981;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+    
+    <!-- Top Ad Banner -->
+    <div class="ad-banner" id="top-ad">
+        <script>
+            atOptions = {
+                'key' : '8002bdd8d6f2405a6a9173bc8b6a2eb5',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script src="https://forbesresistread.com/8002bdd8d6f2405a6a9173bc8b6a2eb5/invoke.js"></script>
+    </div>
+
+    <div class="container">
+        <span class="rocket-icon">🗃️</span>
+        <h1 id="mainTitle">File is Almost Ready</h1>
+        
+        <div class="loader-container" id="loaderContainer">
+            <div class="spinner-circles"></div>
+            <div class="spinner-circles" style="width: 80%; height: 80%; animation-direction: reverse;"></div>
+            <div class="spinner-circles" style="width: 60%; height: 60%;"></div>
+            <div class="countdown-number" id="countdown">5</div>
+        </div>
+        
+        <button class="verify-btn" id="verifyBtn" disabled>Please Wait...</button>
+        <p class="status-text" id="statusText">Scanning Verification...</p>
+        
+        <div class="footer-text">
+            <p>Powered By @Sujan_BotZ</p>
+        </div>
+    </div>
+
+    <!-- Bottom Ad Banner -->
+    <div class="ad-banner" id="bottom-ad">
+        <script>
+            atOptions = {
+                'key' : '8002bdd8d6f2405a6a9173bc8b6a2eb5',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script src="https://forbesresistread.com/8002bdd8d6f2405a6a9173bc8b6a2eb5/invoke.js"></script>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedToken = urlParams.get('token');
+        const countdownEl = document.getElementById('countdown');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const statusText = document.getElementById('statusText');
+        const mainTitle = document.getElementById('mainTitle');
+        
+        let verifyLink = null;
+        if (encodedToken) {
+            try {
+                verifyLink = atob(encodedToken.replace(/-/g, '+').replace(/_/g, '/'));
+            } catch (e) {
+                statusText.innerHTML = '❌ Invalid or Expired link';
+                statusText.style.color = '#ef4444';
+            }
+        }
+
+        if (verifyLink) {
+            let timeLeft = 5;
+            const timer = setInterval(() => {
+                timeLeft--;
+                countdownEl.innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerText = 'Get File';
+                    statusText.innerHTML = '✅ File Ready!';
+                }
+            }, 1000);
+
+            verifyBtn.addEventListener('click', function() {
+                if (window.Telegram && window.Telegram.WebApp && verifyLink.includes('t.me/')) {
+                    window.Telegram.WebApp.openTelegramLink(verifyLink);
+                } else {
+                    window.location.href = verifyLink;
+                }
+                
+                statusText.innerHTML = 'Redirecting...';
+                setTimeout(() => {
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        window.Telegram.WebApp.close();
+                    }
+                }, 2000);
+            });
+        } else if (!encodedToken) {
+            statusText.innerHTML = '❌ Missing Token';
+            statusText.style.color = '#ef4444';
+        }
+
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+    </script>
+</body>
+</html>

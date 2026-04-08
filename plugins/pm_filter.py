@@ -14,11 +14,11 @@ import pyrogram
 from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, \
     make_inactive
 from info import ADMINS, AUTH_CHANNEL, AUTH_USERS, SUPPORT_CHAT_ID, CUSTOM_FILE_CAPTION, MSG_ALRT, PICS, AUTH_GROUPS, P_TTI_SHOW_OFF, GRP_LNK, CHNL_LNK, NOR_IMG, LOG_CHANNEL, SPELL_IMG, MAX_B_TN, IMDB, \
-    SINGLE_BUTTON, SPELL_CHECK_REPLY, IMDB_TEMPLATE, NO_RESULTS_MSG, TUTORIAL, REQST_CHANNEL, IS_TUTORIAL, LANGUAGES, SEASONS, SUPPORT_CHAT, PREMIUM_USER, STREAM_BIN, STREAM_URL, WEB_APP_URL
+    SINGLE_BUTTON, SPELL_CHECK_REPLY, IMDB_TEMPLATE, NO_RESULTS_MSG, TUTORIAL, REQST_CHANNEL, IS_TUTORIAL, LANGUAGES, SEASONS, SUPPORT_CHAT, PREMIUM_USER,  STREAM_BIN, STREAM_URL, IS_WEBAPP
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
-from utils import get_size, is_subscribed, get_poster, search_gagala, temp, get_settings, save_group_settings, get_shortlink, get_tutorial, send_all, get_cap, get_hash, get_name, get_web_app_link
+from utils import get_size, is_subscribed, get_poster, search_gagala, temp, get_settings, save_group_settings, get_shortlink, get_tutorial, send_all, get_cap, get_hash, get_name, get_verify_link
 from database.users_chats_db import db
 from database.ia_filterdb import Media, get_file_details, get_search_results, get_bad_files
 from database.filters_mdb import (
@@ -145,27 +145,22 @@ async def next_page(bot, query):
     settings = await get_settings(query.message.chat.id)
     pre = 'filep' if settings['file_secure'] else 'file'
     if settings['button']:
-        btn = []
-        for file in files:
-            file_btn = [
-                InlineKeyboardButton(
-                    text=f"📁 {get_size(file.file_size)} ▷ {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", 
-                    callback_data=f'{pre}#{file.file_id}'
-                )
-            ]
-            if WEB_APP_URL:
-                file_btn.append(InlineKeyboardButton("🌐", url=await get_web_app_link(file.file_id, query.from_user.id)))
-            btn.append(file_btn)
-
-        btn.insert(0, [InlineKeyboardButton("♻️ SEND ALL FILES ♻️", callback_data=f"sendfiles#{key}")])
-        btn.insert(1, 
+        btn = [
             [
-                InlineKeyboardButton("Quality", callback_data=f"quality#{key}"),
-                InlineKeyboardButton("Language", callback_data=f"languages#{key}"),
-                InlineKeyboardButton("Season", callback_data=f"seasons#{key}")
+                InlineKeyboardButton(
+                    text=f"[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", callback_data=f'{pre}#{file.file_id}'
+                ),
+            ]
+            for file in files
+        ]
+
+        btn.insert(0, 
+            [
+                InlineKeyboardButton(f'Sᴇʟᴇᴄᴛ ➢', 'select'),
+                InlineKeyboardButton("ʟᴀɴɢᴜᴀɢᴇs", callback_data=f"languages#{key}"),
+                InlineKeyboardButton("Sᴇᴀsᴏɴs",  callback_data=f"seasons#{key}")
             ]
         )
-        btn.insert(2, [InlineKeyboardButton("↑↑ Select Options Here ↑↑", callback_data="dummy")])
         btn.insert(0, [
             InlineKeyboardButton("Sᴛᴀʀᴛ Bᴏᴛ", url=f"https://telegram.me/{temp.U_NAME}"),
             InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
@@ -862,22 +857,22 @@ async def cb_handler(client: Client, query: CallbackQuery):
             if settings['is_shortlink'] and clicked not in PREMIUM_USER:
                 if clicked == typed:
                     temp.SHORT[clicked] = query.message.chat.id
-                    await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start=short_{file_id}")
+                    await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=short_{file_id}"))
                     return
                 else:
                     await query.answer(f"Hᴇʏ {query.from_user.first_name}, Tʜɪs Is Nᴏᴛ Yᴏᴜʀ Mᴏᴠɪᴇ Rᴇǫᴜᴇsᴛ. Rᴇǫᴜᴇsᴛ Yᴏᴜʀ's !", show_alert=True)
             else:
                 if clicked == typed:
-                    await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}")
+                    await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}"))
                     return
                 else:
                     await query.answer(f"Hᴇʏ {query.from_user.first_name}, Tʜɪs Is Nᴏᴛ Yᴏᴜʀ Mᴏᴠɪᴇ Rᴇǫᴜᴇsᴛ. Rᴇǫᴜᴇsᴛ Yᴏᴜʀ's !", show_alert=True)
         except UserIsBlocked:
             await query.answer('Uɴʙʟᴏᴄᴋ ᴛʜᴇ ʙᴏᴛ ᴍᴀʜɴ !', show_alert=True)
         except PeerIdInvalid:
-            await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}")
+            await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}"))
         except Exception as e:
-            await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}")
+            await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}"))
             
     elif query.data.startswith("sendfiles"):
         clicked = query.from_user.id
@@ -885,18 +880,18 @@ async def cb_handler(client: Client, query: CallbackQuery):
         settings = await get_settings(query.message.chat.id)
         try:
             if settings['is_shortlink'] and clicked not in PREMIUM_USER:
-                await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start=sendfiles1_{key}")
+                await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=sendfiles1_{key}"))
                 return
             else:
-                await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start=allfiles_{key}")
+                await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=allfiles_{key}"))
                 return
         except UserIsBlocked:
             await query.answer('Uɴʙʟᴏᴄᴋ ᴛʜᴇ ʙᴏᴛ ᴍᴀʜɴ !', show_alert=True)
         except PeerIdInvalid:
-            await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start=sendfiles3_{key}")
+            await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=sendfiles3_{key}"))
         except Exception as e:
             logger.exception(e)
-            await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start=sendfiles4_{key}")
+            await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=sendfiles4_{key}"))
     
     elif query.data.startswith("del"):
         ident, file_id = query.data.split("#")
@@ -918,7 +913,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             f_caption = f_caption
         if f_caption is None:
             f_caption = f"{files.file_name}"
-        await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start=file_{file_id}")
+        await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=file_{file_id}"))
     
     elif query.data.startswith("gen_stream_link"):
         _, file_id = query.data.split(":")
@@ -960,7 +955,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             await query.answer("Jᴏɪɴ ᴏᴜʀ Bᴀᴄᴋ-ᴜᴘ ᴄʜᴀɴɴᴇʟ ᴍᴀʜɴ! 😒", show_alert=True)
             return
         ident, kk, file_id = query.data.split("#")
-        await query.answer(url=f"https://t.me/{temp.U_NAME}?start={kk}_{file_id}")
+        await query.answer(url=await get_verify_link(f"https://t.me/{temp.U_NAME}?start={kk}_{file_id}"))
     
     elif query.data == "pages":
         await query.answer()
@@ -1740,28 +1735,22 @@ async def auto_filter(client, msg, spoll=False):
     FRESH[key] = search
     temp.GETALL[key] = files
     temp.SHORT[message.from_user.id] = message.chat.id
-    if settings['button']:
-        btn = []
-        for file in files:
-            file_btn = [
-                InlineKeyboardButton(
-                    text=f"📁 {get_size(file.file_size)} ▷ {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", 
-                    callback_data=f'{pre}#{file.file_id}'
-                )
-            ]
-            if WEB_APP_URL:
-                file_btn.append(InlineKeyboardButton("🌐", url=await get_web_app_link(file.file_id, message.from_user.id)))
-            btn.append(file_btn)
-
-        btn.insert(0, [InlineKeyboardButton("♻️ SEND ALL FILES ♻️", callback_data=f"sendfiles#{key}")])
-        btn.insert(1, 
+    if settings["button"]:
+        btn = [
             [
-                InlineKeyboardButton("Quality", callback_data=f"quality#{key}"),
-                InlineKeyboardButton("Language", callback_data=f"languages#{key}"),
-                InlineKeyboardButton("Season", callback_data=f"seasons#{key}")
+                InlineKeyboardButton(
+                    text=f"[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", callback_data=f'{pre}#{file.file_id}'
+                ),
+            ]
+            for file in files
+        ]
+        btn.insert(0, 
+            [
+                InlineKeyboardButton(f'Sᴇʟᴇᴄᴛ ➢', 'select'),
+                InlineKeyboardButton("ʟᴀɴɢᴜᴀɢᴇs", callback_data=f"languages#{key}"),
+                InlineKeyboardButton("Sᴇᴀsᴏɴs", callback_data=f"seasons#{key}")
             ]
         )
-        btn.insert(2, [InlineKeyboardButton("↑↑ Select Options Here ↑↑", callback_data="dummy")])
         btn.insert(0, [
             InlineKeyboardButton("Sᴛᴀʀᴛ Bᴏᴛ", url=f"https://telegram.me/{temp.U_NAME}"),
             InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
@@ -1840,8 +1829,8 @@ async def auto_filter(client, msg, spoll=False):
         if not settings["button"]:
             cap+="<b>\n\n<u>📚 Requested Files 👇</u></b>\n"
             for file in files:
-                link = await get_web_app_link(file.file_id) or f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}"
-                cap += f"<b>\n📁 <a href='{link}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n</a></b>"
+                url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}")
+                cap += f"<b>\n📁 <a href='{url}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n</a></b>"
     else:
         if settings["button"]:
             cap = f"<b>Tʜᴇ Rᴇꜱᴜʟᴛꜱ Fᴏʀ ☞ {search}\n\nRᴇǫᴜᴇsᴛᴇᴅ Bʏ ☞ {message.from_user.mention}\n\nʀᴇsᴜʟᴛ sʜᴏᴡ ɪɴ ☞ {remaining_seconds} sᴇᴄᴏɴᴅs\n\nᴘᴏᴡᴇʀᴇᴅ ʙʏ ☞ : {message.chat.title} \n\n⚠️ ᴀꜰᴛᴇʀ 5 ᴍɪɴᴜᴛᴇꜱ ᴛʜɪꜱ ᴍᴇꜱꜱᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴅᴇʟᴇᴛᴇᴅ 🗑️\n\n</b>"
@@ -1849,8 +1838,8 @@ async def auto_filter(client, msg, spoll=False):
             cap = f"<b>Hᴇʏ {message.from_user.mention}, Fᴏᴜɴᴅ {total_results} Rᴇsᴜʟᴛs ғᴏʀ Yᴏᴜʀ Qᴜᴇʀʏ {search}\n\n</b>"
             cap+="<b><u>📚 Requested Files 👇</u></b>\n\n"
             for file in files:
-                link = await get_web_app_link(file.file_id) or f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}"
-                cap += f"<b>📁 <a href='{link}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
+                url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=files_{file.file_id}")
+                cap += f"<b>📁 <a href='{url}'>[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}\n\n</a></b>"
 
     if imdb and imdb.get('poster'):
         try:
