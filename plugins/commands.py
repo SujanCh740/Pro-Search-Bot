@@ -112,6 +112,11 @@ async def start(client, message):
         )
         return
     data = message.command[1]
+    is_verified = False
+    if data.startswith("v_"):
+        is_verified = True
+        data = data[2:]
+        
     try:
         pre, file_id = data.split('_', 1)
     except:
@@ -252,9 +257,22 @@ async def start(client, message):
                 protect_content=True
             )
     if data.startswith("sendfiles"):
-        chat_id = int("-" + file_id.split("-")[1])
-        userid = message.from_user.id if message.from_user else None
-        g = await get_verify_link(await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start=allfiles_{file_id}"))
+        key = data.split("_", 1)[1]
+        try:
+            chat_id = int(temp.SHORT.get(message.from_user.id))
+        except:
+            return await message.reply_text("<b>Search expired, please search again in group.</b>")
+        
+        if not is_verified and IS_WEBAPP:
+            g = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=sendfiles_{key}")
+            return await message.reply_text(
+                text=f"<b>✅ Yᴏᴜʀ ꜰɪʟᴇꜱ ᴀʀᴇ ʀᴇᴀᴅʏ!\n\n📂 ʟɪɴᴋ ➠ : {g}</b>",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)]])
+            )
+        
+        settings = await get_settings(chat_id)
+        if settings['is_shortlink'] and message.from_user.id not in PREMIUM_USER and not is_verified:
+            g = await get_verify_link(await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start=allfiles_{key}"))
         k = await client.send_message(chat_id=message.from_user.id,text=f"<b>Get All Files in a Single Click!!!\n\n📂 ʟɪɴᴋ ➠ : {g}\n\n<i>Note: This message is deleted in 5 mins to avoid copyrights. Save the link to Somewhere else</i></b>", reply_markup=InlineKeyboardMarkup(
                 [
                     [
@@ -290,10 +308,19 @@ async def start(client, message):
         await k.edit("<b>Your message is successfully deleted!!!</b>")
         return
         
-    elif data.startswith("all"):
-        files = temp.GETALL.get(file_id)
+    elif data.startswith("allfiles"):
+        key = data.split("_", 1)[1]
+        files = temp.GETALL.get(key)
         if not files:
             return await message.reply('<b><i>No such file exist.</b></i>')
+        
+        if not is_verified and IS_WEBAPP:
+            g = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=allfiles_{key}")
+            return await message.reply_text(
+                text=f"<b>✅ Yᴏᴜʀ ꜰɪʟᴇꜱ ᴀʀᴇ ʀᴇᴀᴅʏ!\n\n📂 ʟɪɴᴋ ➠ : {g}</b>",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)]])
+            )
+
         filesarr = []
         for file in files:
             file_id = file.file_id
@@ -361,12 +388,21 @@ async def start(client, message):
         
     elif data.startswith("files"):
         user = message.from_user.id
+        file_id = data.split("_", 1)[1]
         if temp.SHORT.get(user)==None:
             return await message.reply_text(text="<b>Please Search Again in Group</b>")
         else:
             chat_id = temp.SHORT.get(user)
+        
+        if not is_verified and IS_WEBAPP:
+            g = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=files_{file_id}")
+            return await message.reply_text(
+                text=f"<b>✅ Yᴏᴜʀ ꜰɪʟᴇ ɪꜱ ʀᴇᴀᴅʏ!\n\n📂 ʟɪɴᴋ ➠ : {g}</b>",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)]])
+            )
+
         settings = await get_settings(chat_id)
-        if settings['is_shortlink'] and user not in PREMIUM_USER:
+        if settings['is_shortlink'] and user not in PREMIUM_USER and not is_verified:
             files_ = await get_file_details(file_id)
             files = files_[0]
             g = await get_verify_link(await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start=file_{file_id}"))
@@ -384,10 +420,19 @@ async def start(client, message):
             await k.edit("<b>Your message is successfully deleted!!!</b>")
             return
     user = message.from_user.id
+    if not is_verified and IS_WEBAPP:
+        g = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start={pre}_{file_id}")
+        return await message.reply_text(
+            text=f"<b>✅ Yᴏᴜʀ ꜰɪʟᴇ ɪꜱ ʀᴇᴀᴅʏ!\n\n📂 ʟɪɴᴋ ➠ : {g}</b>",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)]])
+        )
+
     files_ = await get_file_details(file_id)           
     if not files_:
-        pre, file_id = ((base64.urlsafe_b64decode(data + "=" * (-len(data) % 4))).decode("ascii")).split("_", 1)
+        # Fallback for encoded file_id if any
         try:
+            pre, file_id = ((base64.urlsafe_b64decode(data + "=" * (-len(data) % 4))).decode("ascii")).split("_", 1)
+            
             if not await check_verification(client, message.from_user.id) and VERIFY == True:
                 btn = [[
                     InlineKeyboardButton("Verify", url=await get_token(client, message.from_user.id, f"https://telegram.me/{temp.U_NAME}?start="))
@@ -398,6 +443,7 @@ async def start(client, message):
                     reply_markup=InlineKeyboardMarkup(btn)
                 )
                 return
+                
             msg = await client.send_cached_media(
                 chat_id=message.from_user.id,
                 file_id=file_id,
@@ -432,25 +478,25 @@ async def start(client, message):
             filetype = msg.media
             file = getattr(msg, filetype.value)
             title = '@TeamHMT ' + ' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@'), file.file_name.split()))
-            size=get_size(file.file_size)
+            size = get_size(file.file_size)
             f_caption = f"<code>{title}</code>"
             if CUSTOM_FILE_CAPTION:
                 try:
-                    f_caption=CUSTOM_FILE_CAPTION.format(file_name= '' if title is None else title, file_size='' if size is None else size, file_caption='')
+                    f_caption = CUSTOM_FILE_CAPTION.format(file_name='' if title is None else title, file_size='' if size is None else size, file_caption='')
                 except:
-                    return
+                    pass
             await msg.edit_caption(f_caption)
             btn = [[
                 InlineKeyboardButton("Get File Again", callback_data=f'delfile#{file_id}')
             ]]
-            k = await msg.reply("<b><u>❗️❗️❗️IMPORTANT❗️️❗️❗️</u></b>\n\nThis Movie File/Video will be deleted in <b><u>10 mins</u> 🫥 <i></b>(Due to Copyright Issues)</i>.\n\n<b><i>Please forward this File/Video to your Saved Messages and Start Download there</i></b>",quote=True)
+            k = await msg.reply("<b><u>❗️❗️❗️IMPORTANT❗️️❗️❗️</u></b>\n\nThis Movie File/Video will be deleted in <b><u>10 mins</u> 🫥 <i></b>(Due to Copyright Issues)</i>.\n\n<b><i>Please forward this File/Video to your Saved Messages and Start Download there</i></b>", quote=True)
             await asyncio.sleep(600)
             await msg.delete()
-            await k.edit_text("<b>Your File/Video is successfully deleted!!!\n\nClick below button to get your deleted file 👇</b>",reply_markup=InlineKeyboardMarkup(btn))
+            await k.edit_text("<b>Your File/Video is successfully deleted!!!\n\nClick below button to get your deleted file 👇</b>", reply_markup=InlineKeyboardMarkup(btn))
             return
-        except:
-            pass
-        return await message.reply('No such file exist.')
+        except Exception as e:
+            logger.exception(e)
+            return await message.reply('No such file exist.')
     files = files_[0]
     title = '@TeamHMT ' + ' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@'), files.file_name.split()))
     size=get_size(files.file_size)

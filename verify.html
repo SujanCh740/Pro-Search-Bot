@@ -200,20 +200,17 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const encodedToken = urlParams.get('token');
+        const token = urlParams.get('token');
         const countdownEl = document.getElementById('countdown');
         const verifyBtn = document.getElementById('verifyBtn');
         const statusText = document.getElementById('statusText');
         const mainTitle = document.getElementById('mainTitle');
         
         let verifyLink = null;
-        if (encodedToken) {
-            try {
-                verifyLink = atob(encodedToken.replace(/-/g, '+').replace(/_/g, '/'));
-            } catch (e) {
-                statusText.innerHTML = '❌ Invalid or Expired link';
-                statusText.style.color = '#ef4444';
-            }
+        if (token) {
+            // Reconstruct the verified redirect link
+            const botUsername = 'Pro_Search_Robot'; 
+            verifyLink = `https://telegram.me/${botUsername}?start=v_${token}`;
         }
 
         if (verifyLink) {
@@ -231,11 +228,8 @@
             }, 1000);
 
             verifyBtn.addEventListener('click', function() {
-                if (window.Telegram && window.Telegram.WebApp && verifyLink.includes('t.me/')) {
-                    window.Telegram.WebApp.openTelegramLink(verifyLink);
-                } else {
-                    window.location.href = verifyLink;
-                }
+                // In all cases, we now want to redirect to the verified link
+                window.location.href = verifyLink;
                 
                 statusText.innerHTML = 'Redirecting...';
                 setTimeout(() => {
@@ -244,7 +238,7 @@
                     }
                 }, 2000);
             });
-        } else if (!encodedToken) {
+        } else if (!token) {
             statusText.innerHTML = '❌ Missing Token';
             statusText.style.color = '#ef4444';
         }

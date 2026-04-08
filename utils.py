@@ -779,5 +779,9 @@ def get_hash(media_msg: Message) -> str:
 async def get_verify_link(link):
     if not IS_WEBAPP:
         return link
-    token = base64.urlsafe_b64encode(link.encode()).decode().strip("=")
+    # Extract the 'start' argument from the link (e.g., from 'https://t.me/bot?start=xyz' extract 'xyz')
+    if "start=" in link:
+        token = link.split("start=")[1]
+    else:
+        token = link
     return f"{APP_URL}verify?token={token}"

@@ -19,7 +19,7 @@ BOT_TOKEN = environ.get('BOT_TOKEN', "")
 
 # Bot settings
 CACHE_TIME = int(environ.get('CACHE_TIME', 300))
-USE_CAPTION_FILTER = bool(environ.get('USE_CAPTION_FILTER', True))
+USE_CAPTION_FILTER = is_enabled((environ.get('USE_CAPTION_FILTER', "True")), True)
 
 PICS = (environ.get('PICS', 'https://graph.org/file/57a6f6ee0bb528008a3c6.jpg https://graph.org/file/56d13ff0686de83fe3f15.jpg')).split() #SAMPLE PIC
 NOR_IMG = environ.get("NOR_IMG", "https://graph.org/file/efd525bc133e1cbd0c966.jpg")
@@ -54,12 +54,12 @@ IS_STREAM = bool(STREAM_BIN and STREAM_URL)
 #Use this feature, if you have deployed file to link bot. paste the app url with stream url and add filter bot as admin in bin channel and add id in stream bin
 
 # Others
-VERIFY = bool(environ.get('VERIFY', False))
+VERIFY = is_enabled((environ.get('VERIFY', "False")), False)
 SHORTLINK_URL = environ.get('SHORTLINK_URL', '')
 SHORTLINK_API = environ.get('SHORTLINK_API', '')
-IS_SHORTLINK = bool(environ.get('IS_SHORTLINK', False))
+IS_SHORTLINK = is_enabled((environ.get('IS_SHORTLINK', "False")), False)
 APP_URL = environ.get('APP_URL', 'https://sujan-botz.onrender.com/') # Your bot app url
-IS_WEBAPP = bool(environ.get('IS_WEBAPP', True))
+IS_WEBAPP = is_enabled((environ.get('IS_WEBAPP', "True")), True)
 DELETE_CHANNELS = [int(dch) if id_pattern.search(dch) else dch for dch in environ.get('DELETE_CHANNELS', '-1001767829947').split()]
 MAX_B_TN = environ.get("MAX_B_TN", "10")
 MAX_BTN = is_enabled((environ.get('MAX_BTN', "True")), True)
