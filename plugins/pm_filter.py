@@ -145,14 +145,15 @@ async def next_page(bot, query):
     settings = await get_settings(query.message.chat.id)
     pre = 'filep' if settings['file_secure'] else 'file'
     if settings['button']:
-        btn = [
-            [
+        btn = []
+        for file in files:
+            file_url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start={pre}_{file.file_id}")
+            btn.append([
                 InlineKeyboardButton(
-                    text=f"[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", callback_data=f'{pre}#{file.file_id}'
+                    text=f"[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", 
+                    url=file_url
                 ),
-            ]
-            for file in files
-        ]
+            ])
 
         btn.insert(0, 
             [
@@ -161,9 +162,10 @@ async def next_page(bot, query):
                 InlineKeyboardButton("Sᴇᴀsᴏɴs",  callback_data=f"seasons#{key}")
             ]
         )
+        send_all_url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=allfiles_{key}")
         btn.insert(0, [
             InlineKeyboardButton("Sᴛᴀʀᴛ Bᴏᴛ", url=f"https://telegram.me/{temp.U_NAME}"),
-            InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
+            InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", url=send_all_url)
         ])
     else:
         btn = []
@@ -174,9 +176,10 @@ async def next_page(bot, query):
                 InlineKeyboardButton("Sᴇᴀsᴏɴs",  callback_data=f"seasons#{key}")
             ]
         )
+        send_all_url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=allfiles_{key}")
         btn.insert(0, [
             InlineKeyboardButton("Sᴛᴀʀᴛ Bᴏᴛ", url=f"https://telegram.me/{temp.U_NAME}"),
-            InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
+            InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", url=send_all_url)
         ])
     try:
         if settings['max_btn']:
@@ -827,72 +830,6 @@ async def cb_handler(client: Client, query: CallbackQuery):
             alert = alert.replace("\\n", "\n").replace("\\t", "\t")
             await query.answer(alert, show_alert=True)
         
-    if query.data.startswith("file"):
-        clicked = query.from_user.id
-        try:
-            typed = query.message.reply_to_message.from_user.id
-        except:
-            typed = query.from_user.id
-        ident, file_id = query.data.split("#")
-        files_ = await get_file_details(file_id)
-        if not files_:
-            return await query.answer('Nᴏ sᴜᴄʜ ғɪʟᴇ ᴇxɪsᴛ.')
-        files = files_[0]
-        title = files.file_name
-        size = get_size(files.file_size)
-        f_caption = files.caption
-        settings = await get_settings(query.message.chat.id)
-        if CUSTOM_FILE_CAPTION:
-            try:
-                f_caption = CUSTOM_FILE_CAPTION.format(file_name='' if title is None else title,
-                                                       file_size='' if size is None else size,
-                                                       file_caption='' if f_caption is None else f_caption)
-            except Exception as e:
-                logger.exception(e)
-            f_caption = f_caption
-        if f_caption is None:
-            f_caption = f"{files.file_name}"
-
-        try:
-            if settings['is_shortlink'] and clicked not in PREMIUM_USER:
-                if clicked == typed:
-                    temp.SHORT[clicked] = query.message.chat.id
-                    await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=short_{file_id}"))
-                    return
-                else:
-                    await query.answer(f"Hᴇʏ {query.from_user.first_name}, Tʜɪs Is Nᴏᴛ Yᴏᴜʀ Mᴏᴠɪᴇ Rᴇǫᴜᴇsᴛ. Rᴇǫᴜᴇsᴛ Yᴏᴜʀ's !", show_alert=True)
-            else:
-                if clicked == typed:
-                    await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}"))
-                    return
-                else:
-                    await query.answer(f"Hᴇʏ {query.from_user.first_name}, Tʜɪs Is Nᴏᴛ Yᴏᴜʀ Mᴏᴠɪᴇ Rᴇǫᴜᴇsᴛ. Rᴇǫᴜᴇsᴛ Yᴏᴜʀ's !", show_alert=True)
-        except UserIsBlocked:
-            await query.answer('Uɴʙʟᴏᴄᴋ ᴛʜᴇ ʙᴏᴛ ᴍᴀʜɴ !', show_alert=True)
-        except PeerIdInvalid:
-            await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}"))
-        except Exception as e:
-            await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start={ident}_{file_id}"))
-            
-    elif query.data.startswith("sendfiles"):
-        clicked = query.from_user.id
-        ident, key = query.data.split("#")
-        settings = await get_settings(query.message.chat.id)
-        try:
-            if settings['is_shortlink'] and clicked not in PREMIUM_USER:
-                await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=sendfiles1_{key}"))
-                return
-            else:
-                await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=allfiles_{key}"))
-                return
-        except UserIsBlocked:
-            await query.answer('Uɴʙʟᴏᴄᴋ ᴛʜᴇ ʙᴏᴛ ᴍᴀʜɴ !', show_alert=True)
-        except PeerIdInvalid:
-            await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=sendfiles3_{key}"))
-        except Exception as e:
-            logger.exception(e)
-            await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=sendfiles4_{key}"))
-    
     elif query.data.startswith("del"):
         ident, file_id = query.data.split("#")
         files_ = await get_file_details(file_id)
@@ -913,7 +850,13 @@ async def cb_handler(client: Client, query: CallbackQuery):
             f_caption = f_caption
         if f_caption is None:
             f_caption = f"{files.file_name}"
-        await query.answer(url=await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=file_{file_id}"))
+        # Safe fallback for del callback if it exists
+        verify_url = await get_verify_link(f"https://telegram.me/{temp.U_NAME}?start=file_{file_id}")
+        await query.message.reply_text(
+            text=f"<b>✅ Sᴇᴄᴜʀᴇ ʟɪɴᴋ ɢᴇɴᴇʀᴀᴛᴇᴅ!\n\n📂 Fɪʟᴇ Nᴀᴍᴇ: {title}\n🔖 Sɪᴢᴇ: {size}</b>",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📤 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📥", url=verify_url)]])
+        )
+        await query.answer()
     
     elif query.data.startswith("gen_stream_link"):
         _, file_id = query.data.split(":")
