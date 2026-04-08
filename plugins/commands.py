@@ -9,7 +9,7 @@ from pyrogram.types import *
 from database.ia_filterdb import Media, get_file_details, unpack_new_file_id, get_bad_files
 from database.users_chats_db import db
 from info import CHANNELS, ADMINS, AUTH_CHANNEL, LOG_CHANNEL, PICS, BATCH_FILE_CAPTION, CUSTOM_FILE_CAPTION, PROTECT_CONTENT, CHNL_LNK, GRP_LNK, REQST_CHANNEL, SUPPORT_CHAT_ID, SUPPORT_CHAT, MAX_B_TN, VERIFY, SHORTLINK_API, SHORTLINK_URL, TUTORIAL, IS_TUTORIAL, PREMIUM_USER, IS_STREAM, WEB_APP_URL
-from utils import get_settings, get_size, is_subscribed, save_group_settings, temp, verify_user, check_token, check_verification, get_token, get_shortlink, get_tutorial, get_web_app_link
+from utils import get_settings, get_size, is_subscribed, save_group_settings, temp, verify_user, check_token, check_verification, get_token, get_shortlink, get_tutorial, get_web_app_link, get_greeting
 from database.connections_mdb import active_connection
 # from plugins.pm_filter import ENABLE_SHORTLINK
 import re, asyncio, os, sys
@@ -276,12 +276,17 @@ async def start(client, message):
         files_ = await get_file_details(file_id)
         files = files_[0]
         g = await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start=file_{file_id}")
-        btn = [[InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)]]
+        btn = []
         if WEB_APP_URL:
-            btn.append([InlineKeyboardButton("🌐 Oᴘᴇɴ Iɴ Wᴇʙ Aᴘᴘ 🌐", url=await get_web_app_link(file_id))])
-        btn.append([InlineKeyboardButton('⁉️ Hᴏᴡ Tᴏ Dᴏᴡɴʟᴏᴀᴅ ⁉️', url=await get_tutorial(chat_id))])
+            btn.append([InlineKeyboardButton("📁 Get File 📁", url=await get_web_app_link(file_id, user))])
+        btn.append([InlineKeyboardButton("⚡ How To Get File ⚡", url=await get_tutorial(chat_id))])
         
-        k = await client.send_message(chat_id=user,text=f"<b>📕Nᴀᴍᴇ ➠ : <code>{files.file_name}</code> \n\n🔗Sɪᴢᴇ ➠ : {get_size(files.file_size)}\n\n📂Fɪʟᴇ ʟɪɴᴋ ➠ : {g}\n\n<i>Note: This message is deleted in 20 mins to avoid copyrights. Save the link to Somewhere else</i></b>", reply_markup=InlineKeyboardMarkup(btn))
+        greeting = get_greeting()
+        f_name = files.file_name
+        f_size = get_size(files.file_size)
+        f_caption = f"<b>🫂 Hᴇʏ {message.from_user.first_name}, {greeting} 👋\n\n✅ Your File Is Ready.\n\n⚠️ Fɪʟᴇ Nᴀᴍᴇ : <font color='#00FFFF'>{f_name}</font>\n\n📥 Fɪʟᴇ Sɪᴢᴇ : <font color='#00FFFF'>{f_size}</font></b>"
+        
+        k = await client.send_message(chat_id=user, text=f_caption, reply_markup=InlineKeyboardMarkup(btn))
         await asyncio.sleep(1200)
         await k.edit("<b>Your message is successfully deleted!!!</b>")
         return
@@ -366,12 +371,17 @@ async def start(client, message):
             files_ = await get_file_details(file_id)
             files = files_[0]
             g = await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start=file_{file_id}")
-            btn = [[InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)]]
+            btn = []
             if WEB_APP_URL:
-                btn.append([InlineKeyboardButton("🌐 Oᴘᴇɴ Iɴ Wᴇʙ Aᴘᴘ 🌐", url=await get_web_app_link(file_id))])
-            btn.append([InlineKeyboardButton('⁉️ Hᴏᴡ Tᴏ Dᴏᴡɴʟᴏᴀᴅ ⁉️', url=await get_tutorial(chat_id))])
+                btn.append([InlineKeyboardButton("📁 Get File 📁", url=await get_web_app_link(file_id, user))])
+            btn.append([InlineKeyboardButton("⚡ How To Get File ⚡", url=await get_tutorial(chat_id))])
             
-            k = await client.send_message(chat_id=message.from_user.id,text=f"<b>📕Nᴀᴍᴇ ➠ : <code>{files.file_name}</code> \n\n🔗Sɪᴢᴇ ➠ : {get_size(files.file_size)}\n\n📂Fɪʟᴇ ʟɪɴᴋ ➠ : {g}\n\n<i>Note: This message is deleted in 20 mins to avoid copyrights. Save the link to Somewhere else</i></b>", reply_markup=InlineKeyboardMarkup(btn))
+            greeting = get_greeting()
+            f_name = files.file_name
+            f_size = get_size(files.file_size)
+            f_caption = f"<b>🫂 Hᴇʏ {message.from_user.first_name}, {greeting} 👋\n\n✅ Your File Is Ready.\n\n⚠️ Fɪʟᴇ Nᴀᴍᴇ : <font color='#00FFFF'>{f_name}</font>\n\n📥 Fɪʟᴇ Sɪᴢᴇ : <font color='#00FFFF'>{f_size}</font></b>"
+            
+            k = await client.send_message(chat_id=message.from_user.id, text=f_caption, reply_markup=InlineKeyboardMarkup(btn))
             await asyncio.sleep(1200)
             await k.edit("<b>Your message is successfully deleted!!!</b>")
             return

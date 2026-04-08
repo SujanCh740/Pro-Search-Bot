@@ -149,21 +149,23 @@ async def next_page(bot, query):
         for file in files:
             file_btn = [
                 InlineKeyboardButton(
-                    text=f"[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", 
+                    text=f"📁 {get_size(file.file_size)} ▷ {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", 
                     callback_data=f'{pre}#{file.file_id}'
                 )
             ]
             if WEB_APP_URL:
-                file_btn.append(InlineKeyboardButton("🌐", url=await get_web_app_link(file.file_id)))
+                file_btn.append(InlineKeyboardButton("🌐", url=await get_web_app_link(file.file_id, query.from_user.id)))
             btn.append(file_btn)
 
-        btn.insert(0, 
+        btn.insert(0, [InlineKeyboardButton("♻️ SEND ALL FILES ♻️", callback_data=f"sendfiles#{key}")])
+        btn.insert(1, 
             [
-                InlineKeyboardButton(f'Sᴇʟᴇᴄᴛ ➢', 'select'),
-                InlineKeyboardButton("ʟᴀɴɢᴜᴀɢᴇs", callback_data=f"languages#{key}"),
-                InlineKeyboardButton("Sᴇᴀsᴏɴs",  callback_data=f"seasons#{key}")
+                InlineKeyboardButton("Quality", callback_data=f"quality#{key}"),
+                InlineKeyboardButton("Language", callback_data=f"languages#{key}"),
+                InlineKeyboardButton("Season", callback_data=f"seasons#{key}")
             ]
         )
+        btn.insert(2, [InlineKeyboardButton("↑↑ Select Options Here ↑↑", callback_data="dummy")])
         btn.insert(0, [
             InlineKeyboardButton("Sᴛᴀʀᴛ Bᴏᴛ", url=f"https://telegram.me/{temp.U_NAME}"),
             InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
@@ -1738,25 +1740,28 @@ async def auto_filter(client, msg, spoll=False):
     FRESH[key] = search
     temp.GETALL[key] = files
     temp.SHORT[message.from_user.id] = message.chat.id
-    if settings["button"]:
+    if settings['button']:
         btn = []
         for file in files:
             file_btn = [
                 InlineKeyboardButton(
-                    text=f"[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", 
+                    text=f"📁 {get_size(file.file_size)} ▷ {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", 
                     callback_data=f'{pre}#{file.file_id}'
                 )
             ]
             if WEB_APP_URL:
-                file_btn.append(InlineKeyboardButton("🌐", url=await get_web_app_link(file.file_id)))
+                file_btn.append(InlineKeyboardButton("🌐", url=await get_web_app_link(file.file_id, message.from_user.id)))
             btn.append(file_btn)
-        btn.insert(0, 
+
+        btn.insert(0, [InlineKeyboardButton("♻️ SEND ALL FILES ♻️", callback_data=f"sendfiles#{key}")])
+        btn.insert(1, 
             [
-                InlineKeyboardButton(f'Sᴇʟᴇᴄᴛ ➢', 'select'),
-                InlineKeyboardButton("ʟᴀɴɢᴜᴀɢᴇs", callback_data=f"languages#{key}"),
-                InlineKeyboardButton("Sᴇᴀsᴏɴs", callback_data=f"seasons#{key}")
+                InlineKeyboardButton("Quality", callback_data=f"quality#{key}"),
+                InlineKeyboardButton("Language", callback_data=f"languages#{key}"),
+                InlineKeyboardButton("Season", callback_data=f"seasons#{key}")
             ]
         )
+        btn.insert(2, [InlineKeyboardButton("↑↑ Select Options Here ↑↑", callback_data="dummy")])
         btn.insert(0, [
             InlineKeyboardButton("Sᴛᴀʀᴛ Bᴏᴛ", url=f"https://telegram.me/{temp.U_NAME}"),
             InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
